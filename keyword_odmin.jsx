@@ -1,6 +1,9 @@
 ﻿#include "lib.jsx";
 
+
 var doc = app.activeDocument;
+var doc_path = new File(doc.path + '\/' + doc.name.split('.')[0] + '_done.eps');
+
 var items = doc.pathItems;
 var new_doc = app.documents.add(DocumentColorSpace.CMYK);
 var arr = new Array();
@@ -234,9 +237,6 @@ for (var i = 0; i < doc.pathItems.length; i++){
  }
 
 
-
-
-
 new_doc.rasterize(group, [new_doc.geometricBounds[1], new_doc.geometricBounds[0], new_doc.width, new_doc.height], rastr_options);
 
 for (var i = 0; i < new_doc.pathItems.length; i++) {
@@ -248,3 +248,10 @@ for (var i = 0; i < new_doc.pathItems.length; i++) {
     } 
 }
 new_doc.rasterItems.removeAll();
+
+    var save_opts = new EPSSaveOptions();
+
+    saveOpts.embedAllFonts = true;
+new_doc.saveAs(doc_path , save_opts);
+new_doc.close(SaveOptions.DONOTSAVECHANGES)
+doc.close(SaveOptions.DONOTSAVECHANGES)
