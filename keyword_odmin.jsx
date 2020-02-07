@@ -2,8 +2,9 @@
 
 
 var doc = app.activeDocument;
-var doc_path = new File(doc.path + '\/' + doc.name.split('.')[0] + '_done.eps');
-
+var doc_path = new File(doc.path + '\\' + doc.name.split('.')[0] + '_done.eps');
+var save_opts = new EPSSaveOptions();
+save_opts.embedAllFonts = true;
 var items = doc.pathItems;
 var new_doc = app.documents.add(DocumentColorSpace.CMYK);
 var arr = new Array();
@@ -36,10 +37,14 @@ var doc_wight = 464.90;
 var doc_height = 376.65;
 
 // text frames
-var base_font = textFonts.getByName ("PragmaticaC");
-var font_size = 7;
-var x_ofset_txt = 3;
-var y_ofset_txt = 2;
+var font_num = textFonts.getByName ("PragmaticaC");
+var font_char = textFonts.getByName ("PragmaticaC");
+var font_size_num = 7;
+var font_size_char = 7;
+var x_ofset_num = 3;
+var y_ofset_num = 2;
+var x_ofset_char = 3;
+var y_ofset_char = 2;
 
 // enable or disable stroke inside grid
 var inside_stroke = true;
@@ -185,28 +190,35 @@ var rect_width = round(doc_wight / grid_params.x_count, 2);
 var rect_height = round(doc_height / grid_params.y_count, 2);
 var x_mult = doc_wight / grid_params.grid_width;
 var y_mult = doc_height / grid_params.grid_height;
-first = true;
+var first = true;
 for (var i = 0; i < doc.textFrames.length; i++){
 
 
     from_text =  doc.textFrames[i];
     text = from_text.contents;
-    if (isNaN(text)){
-        continue;
-    }
+
     if (from_text.anchor[1] <= low_bound){
         
         continue;
     }
+
     len = from_text.textRange.length;
     y = from_text.anchor[1];
     x = len == 1 ? from_text.anchor[0]  - two_char_diff: from_text.anchor[0]
+
     if (first){
        var delta = get_delta(x * x_mult, y * y_mult, rect_width, rect_height);
         first = false;
     }
     x = round((x * x_mult + delta.delta_x -  (x * x_mult) % rect_width), 2);
     y = round((y * y_mult + delta.delta_y - (y * y_mult) % rect_height), 2);
+    if (isNaN(text)){
+        txt_item = new_doc.textFrames.add();
+        txt_item.position = [x + x_ofset_char, y + y_ofset_char];
+        txt_item.contents = doc.textFrames[i].contents;
+        Char_Attrib (txt_item, font_char, 100, font_size_char, black);
+     continue;
+    }
     var rect = new_doc.pathItems.rectangle(0.0, 0.0, rect_width, rect_height);
     rect.pixelAligned = false;
     rect.width = rect_width;
@@ -214,9 +226,9 @@ for (var i = 0; i < doc.textFrames.length; i++){
     rect.position = [x , y];
     rect.duplicate(group);
     txt_item = new_doc.textFrames.add();
-    txt_item.position = [x + x_ofset_txt, y + y_ofset_txt];
+    txt_item.position = [x + x_ofset_num, y + y_ofset_num];
     txt_item.contents = doc.textFrames[i].contents;
-    Char_Attrib (txt_item, base_font, 100, font_size, black);
+    Char_Attrib (txt_item, font_num, 100, font_size_num, black);
 }
 
 for (var i = 0; i < doc.pathItems.length; i++){
@@ -249,9 +261,7 @@ for (var i = 0; i < new_doc.pathItems.length; i++) {
 }
 new_doc.rasterItems.removeAll();
 
-    var save_opts = new EPSSaveOptions();
 
-    saveOpts.embedAllFonts = true;
 new_doc.saveAs(doc_path , save_opts);
-new_doc.close(SaveOptions.DONOTSAVECHANGES)
-doc.close(SaveOptions.DONOTSAVECHANGES)
+new_doc.close(SaveOptions.DONOTSAVECHANGES);
+doc.close(SaveOptions.DONOTSAVECHANGES);
